@@ -1,0 +1,62 @@
+#!/bin/bash
+
+# --- Configuration ---
+# Name of your Java source file (must be in the same directory as this script)
+JAVA_SOURCE_FILE="RecursiveTextToClipboard.java"
+# Name of the main class (without .java or .class extension)
+JAVA_CLASS_NAME="RecursiveTextToClipboard"
+# --- End Configuration ---
+
+# Get the directory where this script is located.
+# This makes the script runnable from any directory, as it will find the Java files relative to itself.
+SCRIPT_DIR="$(dirname "$(realpath "$0")")"
+
+# --- REMOVED: 'cd "$SCRIPT_DIR"' from here ---
+# We no longer change directory to avoid issues with relative paths provided by the user.
+
+# --- Compilation Logic ---
+# Check if the Java source file exists using its absolute path
+if [[ ! -f "$SCRIPT_DIR/$JAVA_SOURCE_FILE" ]]; then
+    echo "Error: Java source file not found: $SCRIPT_DIR/$JAVA_SOURCE_FILE" >&2
+    echo "Please ensure '$JAVA_SOURCE_FILE' is in the same directory as this script." >&2
+    exit 1
+fi
+
+# Define the path to the compiled class file
+CLASS_FILE="$SCRIPT_DIR/${JAVA_CLASS_NAME}.class"
+
+# Compile the Java file if:
+# 1. The .class file does not exist, OR
+# 2. The .java file is newer than the .class file (meaning changes were made to the source)
+# Use absolute paths for comparison and compilation output.
+if [[ ! -f "$CLASS_FILE" ]] || [[ "$SCRIPT_DIR/$JAVA_SOURCE_FILE" -nt "$CLASS_FILE" ]]; then
+    echo "Compiling $JAVA_SOURCE_FILE..."
+    # Specify -d "$SCRIPT_DIR" to place the .class file in the script's directory.
+    # Compile the source file using its absolute path.
+    javac -d "$SCRIPT_DIR" "$SCRIPT_DIR/$JAVA_SOURCE_FILE" 2>&1
+    if [[ $? -ne 0 ]]; then # Check the exit status of javac (0 means success)
+        echo "Compilation failed. Please check the Java code for errors." >&2
+        exit 1
+    fi
+    echo "Compilation successful."
+else
+    echo "Using existing compiled class file ($CLASS_FILE)."
+fi
+
+# Final check to ensure the compiled class file exists after (potential) compilation
+if [[ ! -f "$CLASS_FILE" ]]; then
+    echo "Error: Compiled class file not found: $SCRIPT_DIR/$CLASS_FILE" >&2
+    echo "Compilation might have failed, or there's an unexpected issue with the file system." >&2
+    exit 1
+fi
+
+# --- Execution Logic ---
+# Run the Java application.
+# Use -cp "$SCRIPT_DIR" to tell Java where to find the class files (the compiled .class).
+# "$@" passes all arguments given to THIS shell script directly to the Java program.
+# The Java program will then interpret these arguments (e.g., "App.tsx") relative to the CWD
+# where 'ccopy' was originally invoked.
+echo "Running Java application: $JAVA_CLASS_NAME"
+java -cp "$SCRIPT_DIR" "$JAVA_CLASS_NAME" "$@"
+
+exit 0 # Script finished successfully
