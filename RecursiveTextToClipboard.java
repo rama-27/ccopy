@@ -16,7 +16,7 @@ public class RecursiveTextToClipboard {
 
     // Default set of common text file extensions
     private static final Set<String> DEFAULT_TEXT_EXTENSIONS = new HashSet<>(Arrays.asList(
-            "txt", "java", "py", "js", "html", "css", "xml", "json", "md", "csv", "log", "yaml", "yml", "sh", "bat", "sql", "conf", "config", "ini","tsx"
+            "txt", "java", "py", "js", "html", "css", "xml", "json", "md", "csv", "log", "yaml", "yml", "sh", "bat", "sql", "conf", "config", "ini","tsx","properties","go"
     ));
 
     public static void main(String[] args) {
